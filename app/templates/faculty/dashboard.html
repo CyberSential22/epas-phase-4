@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% from "shared/event_status_badge.html" import status_badge %}
+
+{% block title %}Faculty Review Dashboard{% endblock %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+    <div>
+        <h1 class="mb-0">Faculty Review Dashboard</h1>
+        <p class="text-muted mb-0">Manage and review event proposals assigned to you.</p>
+    </div>
+    <div class="badge badge-info">
+        <i class="bi bi-clock-history mr-2"></i> {{ events|length }} Pending
+    </div>
+</div>
+
+{% if events %}
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>Reference</th>
+                <th>Event Details</th>
+                <th>Date</th>
+                <th>Requester</th>
+                <th>Status</th>
+                <th class="text-center">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for event in events %}
+            <tr>
+                <td class="fw-bold text-primary">#{{ event.reference_id }}</td>
+                <td>
+                    <div class="fw-bold">{{ event.title }}</div>
+                    <div class="small text-muted">{{ event.event_type }} • {{ event.venue }}</div>
+                </td>
+                <td>
+                    <div class="small fw-medium">{{ event.event_date.strftime('%d %b %Y') }}</div>
+                </td>
+                <td>
+                    <div class="flex items-center gap-2">
+                        <i class="bi bi-person-circle text-muted"></i>
+                        <span>{{ event.creator.username }}</span>
+                    </div>
+                </td>
+                <td>{{ status_badge(event.status) }}</td>
+                <td class="text-center">
+                    <a href="{{ url_for('faculty.review', event_id=event.id) }}"
+                        class="btn btn-primary btn-sm btn-rounded">
+                        <i class="bi bi-search"></i> Review
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="card p-6 text-center">
+    <div class="mb-4">
+        <i class="bi bi-inbox text-muted" style="font-size: 3rem; opacity: 0.3;"></i>
+    </div>
+    <h3>All caught up!</h3>
+    <p class="text-muted">There are no pending events requiring your review at the moment.</p>
+</div>
+{% endif %}
+{% endblock %}

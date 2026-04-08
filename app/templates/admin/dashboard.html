@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h1>System Administration</h1>
+    <p class="text-muted">Platform-wide oversight, user management, and system health monitoring.</p>
+</div>
+
+<!-- Stats Overview -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="label">Total Users</div>
+        <div class="value">{{ user_count }}</div>
+        <div class="progress-container">
+            <div class="progress-bar" style="width: 70%"></div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="label">Total Events</div>
+        <div class="value text-success">{{ event_count }}</div>
+        <div class="progress-container">
+            <div class="progress-bar" style="width: 45%; background: var(--success);"></div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="label">Pending Approvals</div>
+        <div class="value text-warning">{{ pending_global }}</div>
+        <div class="progress-container">
+            <div class="progress-bar" style="width: 25%; background: var(--warning);"></div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="label">System Status</div>
+        <div class="value text-info">99.9%</div>
+        <div class="progress-container">
+            <div class="progress-bar" style="width: 100%; background: var(--info);"></div>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-2 gap-4">
+    <!-- Quick Actions -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="mb-0">Quick Actions</h3>
+        </div>
+        <div class="card-body">
+            <div class="flex vertical gap-2">
+                <a href="#" class="btn btn-light w-full justify-between">
+                    <span><i class="bi bi-people mr-2 text-primary"></i> Manage Users</span>
+                    <i class="bi bi-chevron-right small"></i>
+                </a>
+                <a href="#" class="btn btn-light w-full justify-between">
+                    <span><i class="bi bi-journal-text mr-2 text-info"></i> View Audit Logs</span>
+                    <i class="bi bi-chevron-right small"></i>
+                </a>
+                <a href="#" class="btn btn-light w-full justify-between">
+                    <span><i class="bi bi-gear mr-2 text-secondary"></i> System Configuration</span>
+                    <i class="bi bi-chevron-right small"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="mb-0">Recent Activity</h3>
+        </div>
+        <div class="card-body" style="padding: 0;">
+            <div class="activity-list">
+                {% for activity in recent_activity %}
+                <div class="flex items-center p-6" style="border-bottom: 1px solid var(--border);">
+                    <div class="badge {{ 'badge-success' if activity.decision.value == 'Approved' else 'badge-danger' }} mr-4"
+                        style="width: 40px; height: 40px; justify-content: center;">
+                        <i class="bi {{ 'bi-check-lg' if activity.decision.value == 'Approved' else 'bi-x-lg' }}"></i>
+                    </div>
+                    <div class="w-full">
+                        <div class="flex justify-between">
+                            <span class="fw-bold">{{ activity.approver.username }}</span>
+                            <span class="small text-muted">{{ activity.timestamp.strftime('%H:%M') }}</span>
+                        </div>
+                        <div class="small text-muted">
+                            {{ activity.decision.value }} event <span class="text-primary fw-medium">#{{
+                                activity.event.reference_id }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="p-6 text-center text-muted">
+                    No recent activity found.
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="card-footer text-center">
+            <a href="#" class="small fw-bold text-primary">View All Logs</a>
+        </div>
+    </div>
+</div>
+
+<!-- Users Table -->
+<div class="mt-4">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="mb-0">Recently Joined Users</h3>
+            <button class="btn btn-primary btn-sm">Export Data</button>
+        </div>
+        <div class="table-container" style="border: none;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Role</th>
+                        <th>Department</th>
+                        <th>Status</th>
+                        <th class="text-center">Manage</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>
+                            <div class="flex items-center gap-2">
+                                <div class="badge badge-secondary"
+                                    style="width: 32px; height: 32px; justify-content: center;">
+                                    {{ user.username[0]|upper }}
+                                </div>
+                                <div>
+                                    <div class="fw-bold">{{ user.username }}</div>
+                                    <div class="small text-muted">{{ user.email }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td><span class="badge badge-secondary">{{ user.role.value }}</span></td>
+                        <td>{{ user.department or 'N/A' }}</td>
+                        <td><span class="badge badge-success">Active</span></td>
+                        <td class="text-center">
+                            <button class="btn btn-light btn-sm"><i class="bi bi-pencil"></i></button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .vertical {
+        flex-direction: column;
+    }
+
+    .mr-2 {
+        margin-right: 0.5rem;
+    }
+
+    .mr-4 {
+        margin-right: 1rem;
+    }
+</style>
+{% endblock %}

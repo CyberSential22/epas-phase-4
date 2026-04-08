@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% from "shared/event_status_badge.html" import status_badge %}
+
+{% block title %}Dept Head Dashboard{% endblock %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+    <div>
+        <h1>Welcome, {{ current_user.username }}</h1>
+        <p class="text-muted mb-0">Department Head Review Panel • {{ pending_count }} pending tasks.</p>
+    </div>
+    <div class="badge badge-primary">
+        <i class="bi bi-shield-check mr-2"></i> Dept Head
+    </div>
+</div>
+
+<!-- Stats Overview -->
+{% set total_tasks = pending_count + approved_count + rejected_count %}
+{% set pending_percent = (pending_count / total_tasks * 100)|int if total_tasks > 0 else 0 %}
+<div class="stats-grid">
+    <div class="stat-card" {{ 'style="--progress: ' ~ pending_percent ~ '%;"' | safe }}>
+        <div class="label">Pending Review</div>
+        <div class="value text-warning">{{ pending_count }}</div>
+        <div class="progress-container">
+            <div class="progress-bar" style="width: var(--progress); background: var(--warning);"></div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="label">Approved This Week</div>
+        <div class="value text-success">{{ approved_count }}</div>
+        <div class="progress-container">
+            <div class="progress-bar" style="width: 100%; background: var(--success);"></div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="label">Rejected Total</div>
+        <div class="value text-danger">{{ rejected_count }}</div>
+        <div class="progress-container">
+            <div class="progress-bar" style="width: 100%; background: var(--danger);"></div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="mb-0">Pending Review Queue</h3>
+        <span class="badge badge-secondary">{{ events|length }} Items</span>
+    </div>
+    <div class="table-container" style="border: none;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Reference ID</th>
+                    <th>Event Details</th>
+                    <th>Organizer</th>
+                    <th>Faculty Rec.</th>
+                    <th>Submitted</th>
+                    <th class="text-center">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for event in events %}
+                {% set faculty_rec = event.approvals|selectattr("level.name", "equalto", "Faculty")|list|last %}
+                <tr>
+                    <td><span class="text-primary fw-bold">#{{ event.reference_id }}</span></td>
+                    <td>
+                        <div class="fw-bold">{{ event.title }}</div>
+                        <div class="small text-muted">{{ event.event_type }}</div>
+                    </td>
+                    <td>
+                        <div class="flex items-center gap-2">
+                            <i class="bi bi-person-circle text-muted"></i>
+                            <span>{{ event.creator.username }}</span>
+                        </div>
+                    </td>
+                    <td>
+                        {% if faculty_rec %}
+                        <div class="badge badge-success mb-1">
+                            <i class="bi bi-check-circle mr-2"></i> {{ faculty_rec.decision.value }}
+                        </div>
+                        <div class="small text-muted text-truncate" style="max-width: 180px;"
+                            title="{{ faculty_rec.comments }}">
+                            "{{ faculty_rec.comments or 'No comments' }}"
+                        </div>
+                        {% else %}
+                        <span class="text-muted small">Pending Faculty</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="small fw-medium">{{ event.created_at.strftime('%d %b %Y') }}</div>
+                    </td>
+                    <td class="text-center">
+                        <a href="{{ url_for('dept_head.review', event_id=event.id) }}"
+                            class="btn btn-primary btn-sm btn-rounded">
+                            <i class="bi bi-search"></i> Review
+                        </a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6">
+                        <div class="p-6 text-center">
+                            <div class="mb-4">
+                                <i class="bi bi-check-circle-fill text-success"
+                                    style="font-size: 3rem; opacity: 0.2;"></i>
+                            </div>
+                            <h3>All Clear!</h3>
+                            <p class="text-muted">No events require your approval at this moment.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
